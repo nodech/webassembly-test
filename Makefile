@@ -25,16 +25,6 @@ $(BLDDIR)/%.wasm: $(BLDDIR)/%.wast
 $(BLDDIR):
 	mkdir $(BLDDIR)
 
-
-#$(BLDDIR)/test.ll:
-#clang-4.0 -emit-llvm --target=wasm32 -S $(C_FILES) -o $@
-
-#$(BLDDIR)/test.s: $(BLDDIR)/test.ll
-#  llc $(BLDDIR)test.ll -march=wasm32 -o $@
-
-#$(BLDDIR)/test.s: $(BLDDIR)/test.ll
-#  llc test.ll -march=wasm32 -o $@
-
 clean:
 	rm -rf $(BLDDIR)
 	rm $(DEMODIR)/test.wasm
