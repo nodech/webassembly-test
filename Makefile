@@ -7,11 +7,9 @@ OBJNAMES := $(FILES:=.ll) $(FILES:=.s) $(FILES:=.wast) $(FILES:=.wasm)
 OBJS := $(addprefix $(BLDDIR)/,$(OBJNAMES))
 
 demo: $(addprefix $(BLDDIR)/,$(FILES:=.wasm))
-	echo $(OBJS)
 	cp $(BLDDIR)/*.wasm $(DEMODIR)
 
 all: $(OBJS)
-	echo $(OBJS)
 
 $(BLDDIR)/%.ll : $(SRCDIR)/%.c | $(BLDDIR)
 	clang-4.0 -emit-llvm  -I../build/llvm/tools/clang/test/Modules/Inputs/System/usr/include/ --target=wasm32 -S $< -o $@
