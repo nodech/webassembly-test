@@ -17,7 +17,7 @@ $(BLDDIR)/%.s : $(BLDDIR)/%.ll
 	llc $< -march=wasm32 -o $@
 
 $(BLDDIR)/%.wast: $(BLDDIR)/%.s
-	s2wasm $< > $@
+	s2wasm -s 8 $< -o $@
 
 $(BLDDIR)/%.wasm: $(BLDDIR)/%.wast
 	wast2wasm $< -o $@
