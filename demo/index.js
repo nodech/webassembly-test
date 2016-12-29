@@ -15,6 +15,8 @@ fetch('./test.wasm').then(response => response.arrayBuffer())
   let mem = instance.exports.memory.buffer;
   let int32arr = cast.int32(mem);
 
+  instance.exports.memory.grow(10);
+
   console.log('internal', mem.byteLength)
   console.log('external', importObject.mem.buffer.byteLength)
 
@@ -23,24 +25,33 @@ fetch('./test.wasm').then(response => response.arrayBuffer())
 })
 
 function testAverage(exports, int32mem) {
-  let count = 1000;
+  let count = 20000;
+
+  //generate array
   var arr = function (arr, count) {
     for (let i = 0; i < count; i++)
       arr.push(Math.round(Math.random() * 10000))
     return arr;
   }([], count)
 
-  let offset = 100;
   //insert into memory
+  let writenow = performance.now()
+
+  let offset = 100;
   for (let i = 0; i < count; i++) {
     int32mem[i + offset] = arr[i]
   }
+  console.log('Write to Memory:', performance.now() - writenow)
 
-  window.ma = exports.mathAverage;
-  let resWASM = exports.mathAverage(offset * 4, count)
-  let resJS   = js.mathAverage(arr);
+  let wasmnow = performance.now()
+    exports.mathAverage(offset * 4, count)
+  console.log('WASM:', performance.now() - wasmnow)
 
-  console.log(resWASM, resJS);
+  let jsnow = performance.now()
+    js.mathAverage(arr)
+  console.log('JS:', performance.now() - jsnow)
+
+  //console.log(resWASM, resJS);
 }
 
 function instantiate(bytes, imports) {
