@@ -2,7 +2,9 @@ if (typeof WebAssembly == "undefined") {
   alert('Your browser doesn\'t support WebAssembly')
 }
 
-var dump = dumpers();
+var dump = typedOp((buf, arrType) => console.log(new arrType(buf)))
+var cast = typedOp((buf, arrType) => new arrType(buf))
+
 var importObject = {
   mem : new WebAssembly.Memory({ init : 1, max : 2 })
 }
@@ -10,19 +12,36 @@ var importObject = {
 fetch('./test.wasm').then(response => response.arrayBuffer())
 .then(bytes => instantiate(bytes, importObject))
 .then(instance => {
-  console.log(instance);
   let mem = instance.exports.memory.buffer;
-  let memLoc = instance.exports.test()
+  let int32arr = cast.int32(mem);
 
   console.log('internal', mem.byteLength)
   console.log('external', importObject.mem.buffer.byteLength)
 
-  dump.uint8(mem)
-  dump.int8(mem)
-  dump.f32(mem)
-
-  console.log(instance.exports.test())
+  // test average
+  testAverage(instance.exports, int32arr);
 })
+
+function testAverage(exports, int32mem) {
+  let count = 1000;
+  var arr = function (arr, count) {
+    for (let i = 0; i < count; i++)
+      arr.push(Math.round(Math.random() * 10000))
+    return arr;
+  }([], count)
+
+  let offset = 100;
+  //insert into memory
+  for (let i = 0; i < count; i++) {
+    int32mem[i + offset] = arr[i]
+  }
+
+  window.ma = exports.mathAverage;
+  let resWASM = exports.mathAverage(offset * 4, count)
+  let resJS   = js.mathAverage(arr);
+
+  console.log(resWASM, resJS);
+}
 
 function instantiate(bytes, imports) {
   let compiled = WebAssembly.compile(bytes)
@@ -31,21 +50,15 @@ function instantiate(bytes, imports) {
   return compiled.then(m => new WebAssembly.Instance(m, imports))
 }
 
-function dumpers() {
-  let dump = (buf, arrayType) => {
-    let arr = new arrayType(buf);
-
-    console.log(arr);
-  }
-
+function typedOp(fn) {
   return {
-    uint8  : (buf) => dump(buf, Uint8Array),
-    uint16 : (buf) => dump(buf, Uint16Array),
-    uint32 : (buf) => dump(buf, Uint32Array),
-    int8  : (buf) => dump(buf, Int8Array),
-    int16 : (buf) => dump(buf, Int16Array),
-    int32 : (buf) => dump(buf, Int32Array),
-    f32 : (buf) => dump(buf, Float32Array),
-    f64 : (buf) => dump(buf, Float64Array)
+    uint8  : (buf) => fn(buf, Uint8Array),
+    uint16 : (buf) => fn(buf, Uint16Array),
+    uint32 : (buf) => fn(buf, Uint32Array),
+    int8  : (buf) => fn(buf, Int8Array),
+    int16 : (buf) => fn(buf, Int16Array),
+    int32 : (buf) => fn(buf, Int32Array),
+    f32 : (buf) => fn(buf, Float32Array),
+    f64 : (buf) => fn(buf, Float64Array)
   }
 }
