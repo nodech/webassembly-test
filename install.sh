@@ -27,11 +27,7 @@ cmake -G Ninja ..
 ninja
 cd ../..
 
-# sexpr-wasm
-git clone https://github.com/WebAssembly/sexpr-wasm-prototype.git
-cd sexpr-wasm-prototype
-mkdir build
-cd build
-cmake -G Ninja -DBUILD_TESTS=OFF ..
-ninja
-cd ../..
+# WABT
+git clone --recursive https://github.com/WebAssembly/wabt
+cd wabt
+make
