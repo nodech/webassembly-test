@@ -2,16 +2,19 @@ SRCDIR := src
 BLDDIR ?= build
 DEMODIR := demo
 
-OBJS := $(addprefix $(BLDDIR)/,test.ll test.s test.wast test.wasm)
+FILES := $(basename $(notdir $(wildcard $(SRCDIR)/*.c)))
+OBJNAMES := $(FILES:=.ll) $(FILES:=.s) $(FILES:=.wast) $(FILES:=.wasm)
+OBJS := $(addprefix $(BLDDIR)/,$(OBJNAMES))
 
-demo: $(BLDDIR)/test.wasm
-	cp $< $(DEMODIR)
+demo: $(addprefix $(BLDDIR)/,$(FILES:=.wasm))
+	echo $(OBJS)
+	cp $(BLDDIR)/*.wasm $(DEMODIR)
 
 all: $(OBJS)
 	echo $(OBJS)
 
 $(BLDDIR)/%.ll : $(SRCDIR)/%.c | $(BLDDIR)
-	clang-4.0 -emit-llvm --target=wasm32 -S $< -o $@
+	clang-4.0 -emit-llvm  -I../build/llvm/tools/clang/test/Modules/Inputs/System/usr/include/ --target=wasm32 -S $< -o $@
 
 $(BLDDIR)/%.s : $(BLDDIR)/%.ll
 	llc $< -march=wasm32 -o $@
@@ -27,4 +30,4 @@ $(BLDDIR):
 
 clean:
 	rm -rf $(BLDDIR)
-	rm $(DEMODIR)/test.wasm
+	rm $(DEMODIR)/*.wasm
