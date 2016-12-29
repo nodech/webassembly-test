@@ -18,7 +18,8 @@ fetch('./test.wasm').then(response => response.arrayBuffer())
   console.log('external', importObject.mem.buffer.byteLength)
 
   dump.uint8(mem)
-  dump.uint8(importObject.mem.buffer)
+  dump.int8(mem)
+  dump.f32(mem)
 
   console.log(instance.exports.test())
 })
@@ -43,6 +44,8 @@ function dumpers() {
     uint32 : (buf) => dump(buf, Uint32Array),
     int8  : (buf) => dump(buf, Int8Array),
     int16 : (buf) => dump(buf, Int16Array),
-    int32 : (buf) => dump(buf, Int32Array)
+    int32 : (buf) => dump(buf, Int32Array),
+    f32 : (buf) => dump(buf, Float32Array),
+    f64 : (buf) => dump(buf, Float64Array)
   }
 }
