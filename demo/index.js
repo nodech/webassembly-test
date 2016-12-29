@@ -21,35 +21,50 @@ fetch('./test.wasm').then(response => response.arrayBuffer())
   console.log('external', importObject.mem.buffer.byteLength)
 
   // test average
-  testAverage(instance.exports, int32arr);
+  testAverage(instance.exports);
 })
 
-function testAverage(exports, int32mem) {
-  let count = 20000;
+function testAverage(exports) {
+  let int32mem = cast.int32(exports.memory.buffer)
+  let count = 10000;
 
   //generate array
   var arr = function (arr, count) {
     for (let i = 0; i < count; i++)
-      arr.push(Math.round(Math.random() * 10000))
+      arr.push(Math.round(Math.random() * 1000))
     return arr;
   }([], count)
 
-  //insert into memory
-  let writenow = performance.now()
+  //insert into wasm/memory
+  let writeperf = performance.now()
 
-  let offset = 100;
+  let offset = 100
   for (let i = 0; i < count; i++) {
     int32mem[i + offset] = arr[i]
   }
-  console.log('Write to Memory:', performance.now() - writenow)
 
-  let wasmnow = performance.now()
+  writeperf = performance.now() - writeperf
+  console.log('Write to Memory:', writeperf)
+
+
+  //call WASM/mathAverage
+  let wasmperf = performance.now()
+
+  for(var i = 0; i < 5000; i++)
     exports.mathAverage(offset * 4, count)
-  console.log('WASM:', performance.now() - wasmnow)
 
-  let jsnow = performance.now()
+  wasmperf = performance.now() - wasmperf
+
+  console.log('WASM:', wasmperf)
+  console.log('MEMWRITE + WASM:', wasmperf + writeperf);
+
+  let jsperf = performance.now()
+
+  for(var i = 0; i < 1000; i++)
     js.mathAverage(arr)
-  console.log('JS:', performance.now() - jsnow)
+
+  jsperf = performance.now() - jsperf;
+  console.log('JS:', jsperf)
 
   //console.log(resWASM, resJS);
 }
